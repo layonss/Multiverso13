@@ -1,0 +1,1425 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portal Multiverso 13 | QG Oficial</title>
+  
+  <!-- Google Fonts: Outfit (Títulos) e Plus Jakarta Sans (Leitura fluida) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Biblioteca de Confetes -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            display: ['"Outfit"', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #090a0f;
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(168, 85, 247, 0.16) 0px, transparent 50%),
+        radial-gradient(at 100% 0%, rgba(6, 182, 212, 0.16) 0px, transparent 50%),
+        radial-gradient(at 50% 100%, rgba(255, 42, 84, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+    }
+    .glass-card {
+      background: rgba(22, 25, 38, 0.78);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* Anel de Foco de 10 Minutos */
+    .focus-ring-svg {
+      width: 18px;
+      height: 18px;
+      transform: rotate(-90deg);
+    }
+    .focus-ring-bg {
+      fill: none;
+      stroke: rgba(255, 255, 255, 0.15);
+      stroke-width: 3;
+    }
+    .focus-ring-progress {
+      fill: none;
+      stroke: #10b981;
+      stroke-width: 3;
+      stroke-linecap: round;
+      stroke-dasharray: 38;
+      stroke-dashoffset: 38;
+      transition: stroke-dashoffset 1s linear;
+    }
+  </style>
+</head>
+<body class="text-slate-100 min-h-screen pb-20 selection:bg-fuchsia-500 selection:text-white">
+
+  <!-- TOPBAR / HUD DE PROGRESSO + ANEL DE FOCO DIÁRIO -->
+  <header class="sticky top-0 z-30 glass-card border-b border-white/10">
+    <div class="max-w-3xl mx-auto px-4 py-3.5">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+        <div class="flex items-center gap-2.5">
+          <span class="text-2xl">🌌</span>
+          <div>
+            <h1 class="font-display font-extrabold text-lg tracking-wide bg-gradient-to-r from-rose-400 via-fuchsia-400 to-cyan-400 bg-clip-text text-transparent">
+              MULTIVERSO 13
+            </h1>
+            <p class="text-[11px] text-slate-400">Trilha Interdimensional</p>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Anel de Imersão Diária (10 Minutos = +10 XP por dia) -->
+          <div class="flex items-center gap-2 px-3 py-1 rounded-full bg-slate-900/90 border border-white/10 text-xs font-semibold text-slate-200" title="Estude com calma por 10 minutos hoje para ganhar +10 XP de bônus!">
+            <svg class="focus-ring-svg" viewBox="0 0 16 16">
+              <circle class="focus-ring-bg" cx="8" cy="8" r="6"></circle>
+              <circle class="focus-ring-progress" id="focusRing" cx="8" cy="8" r="6"></circle>
+            </svg>
+            <span id="focusTimerText">Foco: 0:00 / 10:00</span>
+          </div>
+
+          <div id="levelBadge" class="px-3 py-1 rounded-full text-xs font-bold bg-fuchsia-500/20 border border-fuchsia-500/40 text-fuchsia-200">
+            Nível 1 • Recruta
+          </div>
+        </div>
+      </div>
+
+      <!-- Barra de XP de Nível -->
+      <div class="w-full bg-slate-800/80 h-2.5 rounded-full overflow-hidden p-0.5 border border-white/5">
+        <div id="xpBar" class="bg-gradient-to-r from-rose-500 via-fuchsia-500 to-cyan-400 h-full rounded-full transition-all duration-700" style="width: 5%"></div>
+      </div>
+      <div class="flex justify-between text-[11px] text-slate-400 mt-1.5 font-medium">
+        <span>⚡ XP Total: <strong id="xpTotalText" class="text-white">0 XP</strong></span>
+        <span>💎 Saldo na Lojinha: <strong id="xpBalanceText" class="text-emerald-400">0 XP</strong></span>
+        <span id="missionsCountText">0 de 16 missões</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- CONTEÚDO PRINCIPAL -->
+  <main class="max-w-3xl mx-auto px-4 pt-5">
+
+    <!-- MENU DE NAVEGAÇÃO PRINCIPAL (DIVIDE O APP EM 3 SALAS LIMPAS) -->
+    <nav class="grid grid-cols-3 gap-2 p-1.5 rounded-2xl glass-card mb-6 border border-white/10">
+      <button onclick="switchMainView('missoes')" id="navBtn-missoes" class="py-2.5 px-3 rounded-xl font-display font-bold text-xs sm:text-sm transition-all bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg flex items-center justify-center gap-1.5">
+        <span>🗺️</span> <span>Missões</span>
+      </button>
+      <button onclick="switchMainView('reliquias')" id="navBtn-reliquias" class="py-2.5 px-3 rounded-xl font-display font-bold text-xs sm:text-sm transition-all text-slate-300 hover:text-white flex items-center justify-center gap-1.5">
+        <span>🏆</span> <span>Relíquias</span> <span id="navRelicsCount" class="text-[10px] px-1.5 py-0.5 rounded-full bg-white/10">0/16</span>
+      </button>
+      <button onclick="switchMainView('lojinha')" id="navBtn-lojinha" class="py-2.5 px-3 rounded-xl font-display font-bold text-xs sm:text-sm transition-all text-slate-300 hover:text-white flex items-center justify-center gap-1.5">
+        <span>🛍️</span> <span>Lojinha</span>
+      </button>
+    </nav>
+
+    <!-- =======================================================================
+         ABA 1: TRILHA DE MISSÕES (1 A 16)
+         ======================================================================= -->
+    <div id="view-missoes" class="space-y-6">
+      <!-- Banner de Boas-Vindas -->
+      <section class="glass-card rounded-3xl p-6 relative overflow-hidden shadow-2xl">
+        <div class="absolute -right-6 -top-6 text-8xl opacity-10 pointer-events-none">🕷️</div>
+        <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 mb-3">
+          ✨ Trilha Secreta de 13 Anos
+        </span>
+        <h2 class="font-display text-2xl sm:text-3xl font-bold text-white mb-2">
+          Cada senha abre o próximo portal!
+        </h2>
+        <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+          Explore as <strong>16 missões</strong> no seu ritmo. A cada missão concluída com o seu primo no WhatsApp, você sobe de nível, desbloqueia uma relíquia na sua galeria e acumula <strong>Saldo de XP</strong> para trocar por recompensas reais na Lojinha!
+        </p>
+      </section>
+
+      <!-- Filtros de Mundos (Corrigido para 1 a 16) -->
+      <div class="flex gap-2 overflow-x-auto no-scrollbar pb-2">
+        <button onclick="filterMissions('all', this)" class="tab-btn active px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all bg-white text-slate-900 shadow-lg">
+          🗺️ Trilha Completa (1 a 16)
+        </button>
+        <button onclick="filterMissions('hawkins', this)" class="tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white">
+          🧇 Hawkins (Português)
+        </button>
+        <button onclick="filterMissions('spider', this)" class="tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white">
+          🕷️ Aranhaverso (Matemática)
+        </button>
+        <button onclick="filterMissions('stitch', this)" class="tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white">
+          🛸 Exp. 626 (Ciências)
+        </button>
+        <button onclick="filterMissions('futuro', this)" class="tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white">
+          🧭 Bússola do Futuro
+        </button>
+        <button onclick="filterMissions('sociedade', this)" class="tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white">
+          ✊ Consciência & Mundo
+        </button>
+      </div>
+
+      <!-- Grid Limpo Apenas com as Missões -->
+      <div id="missionsGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </div>
+
+    <!-- =======================================================================
+         ABA 2: SALA ESPECIAL DE RELÍQUIAS (TROFÉUS)
+         ======================================================================= -->
+    <div id="view-reliquias" class="hidden space-y-6">
+      <section class="glass-card rounded-3xl p-6 text-center relative overflow-hidden">
+        <div class="text-4xl mb-2">🏆</div>
+        <h2 class="font-display text-2xl font-bold text-white mb-1">Sala de Relíquias do Multiverso</h2>
+        <p class="text-slate-300 text-xs sm:text-sm max-w-md mx-auto leading-relaxed">
+          Cada relíquia representa um superpoder intelectual que você dominou. Destrave as senhas com o seu primo para iluminar toda a sala!
+        </p>
+        <div class="mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-bold" id="relicsBannerCount">
+          0 de 12 Relíquias Desbloqueadas
+        </div>
+      </section>
+
+      <div id="badgesGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4"></div>
+    </div>
+
+    <!-- =======================================================================
+         ABA 3: LOJINHA DE RECOMPENSAS REAIS
+         ======================================================================= -->
+    <div id="view-lojinha" class="hidden space-y-6">
+      <section class="glass-card rounded-3xl p-6 relative overflow-hidden border border-emerald-500/30">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 mb-2">
+              🛍️ Recompensas no Mundo Real
+            </span>
+            <h2 class="font-display text-2xl font-bold text-white">Lojinha do Multiverso</h2>
+            <p class="text-slate-300 text-xs sm:text-sm mt-1 leading-relaxed">
+              Economize seu XP ou troque por prêmios especiais com o seu primo! Gastar seu saldo aqui <strong>não diminui o seu Nível</strong> no topo.
+            </p>
+          </div>
+          <div class="bg-slate-900/90 border border-emerald-500/40 rounded-2xl p-4 text-center min-w-[150px]">
+            <div class="text-[11px] uppercase font-bold text-slate-400">Seu Saldo Atual</div>
+            <div class="font-display font-extrabold text-2xl text-emerald-400 mt-0.5" id="shopBalanceDisplay">0 XP</div>
+          </div>
+        </div>
+      </section>
+
+      <div id="shopGrid" class="grid grid-cols-1 sm:grid-cols-2 gap-4"></div>
+    </div>
+
+  </main>
+
+  <!-- MODAL INTERATIVO DAS MISSÕES (PASSO 1 -> 2 -> 3) -->
+  <div id="missionModal" class="fixed inset-0 z-50 hidden items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md">
+    <div class="glass-card w-full max-w-xl rounded-3xl overflow-hidden shadow-2xl border border-white/15 flex flex-col max-h-[90vh]">
+      
+      <div class="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-slate-900/60">
+        <div>
+          <span id="modalTag" class="text-[11px] font-bold uppercase tracking-wider text-cyan-400"></span>
+          <h3 id="modalTitle" class="font-display font-bold text-lg text-white"></h3>
+        </div>
+        <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center text-slate-300 font-bold">
+          ✕
+        </button>
+      </div>
+
+      <div class="px-6 py-3 bg-slate-950/50 border-b border-white/5 flex items-center justify-between text-xs font-semibold">
+        <button onclick="goToStep(1)" id="stepIndicator1" class="flex items-center gap-1.5 text-cyan-400">
+          <span class="w-5 h-5 rounded-full bg-cyan-500/20 border border-cyan-400 flex items-center justify-center text-[10px]">1</span>
+          <span>A Descoberta</span>
+        </button>
+        <div class="h-[1px] flex-1 bg-white/10 mx-2"></div>
+        <button onclick="goToStep(2)" id="stepIndicator2" class="flex items-center gap-1.5 text-slate-500">
+          <span class="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px]">2</span>
+          <span>Simulador</span>
+        </button>
+        <div class="h-[1px] flex-1 bg-white/10 mx-2"></div>
+        <button onclick="goToStep(3)" id="stepIndicator3" class="flex items-center gap-1.5 text-slate-500">
+          <span class="w-5 h-5 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-[10px]">3</span>
+          <span>WhatsApp & Senha</span>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto space-y-4 flex-1" id="modalBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // =========================================================================
+    // CONFIGURAÇÕES DO MENTOR
+    // =========================================================================
+    const TELEFONE_PRIMO = "5521999999999"; // Coloque seu número com DDD aqui
+    const MODO_TRILHA_SEQUENCIAL = true;    // true = cada senha destrava a próxima missão
+
+    // =========================================================================
+    // CATÁLOGO DA LOJINHA (PREÇOS CALIBRADOS PARA EXIGIR DEDICAÇÃO REAL!)
+    // Total das 12 missões = 300 XP (+10 XP por dia de foco de 10 min)
+    // =========================================================================
+    const RECOMPENSAS_LOJA = [
+      {
+        id: "r1",
+        icon: "🍿",
+        title: "Sessão Pipoca VIP + Doce",
+        desc: "Direito de escolher o filme ou série da sessão em família + seu chocolate ou doce favorito!",
+        cost: 60, // Exige completar toda a Fase 1 (4 missões)
+        redeemCode: "PIPOCA13"
+      },
+      {
+        id: "r2",
+        icon: "🍨",
+        title: "Missão Açaí ou Sorvete com o Primo",
+        desc: "Um passeio especial para tomar um açaí caprichado ou sorvete e colocar o papo em dia!",
+        cost: 130, // Exige completar ~7 missões
+        redeemCode: "ACAI13"
+      },
+      {
+        id: "r3",
+        icon: "📚",
+        title: "Kit Exploradora (Livro, HQ ou Mimo)",
+        desc: "Um livro, quadrinho do Aranhaverso/Stranger Things ou item de papelaria/maquiagem escolhido junto com o primo!",
+        cost: 210, // Exige completar ~9 a 10 missões
+        redeemCode: "LIVRO13"
+      },
+      {
+        id: "r4",
+        icon: "🎟️",
+        title: "Dia Épico no Multiverso (Passeio Especial)",
+        desc: "Recompensa Lendária por zerar a trilha: um passeio cultural incrível no Rio (Cinema, CCBB, Museu do Amanhã ou Planetário)!",
+        cost: 300, // Exige completar todas as 12 missões da trilha!
+        redeemCode: "PASSEIO13"
+      }
+    ];
+
+    // =========================================================================
+    // TRILHA COMPLETA DE 16 MISSÕES (COM XP REBALANCEADO: 15 -> 25 -> 35 XP)
+    // =========================================================================
+    const MISSOES = [
+      // ---------------- FASE 1: BASE (15 XP CADA = 60 XP) ----------------
+      {
+        id: "m1",
+        order: 1,
+        theme: "hawkins",
+        color: "from-rose-500 to-red-600",
+        border: "border-rose-500/40",
+        tag: "🧇 Missão #01 • Hawkins (Português)",
+        title: "O Truque Secreto das Manchetes",
+        shortDesc: "Como o jornal de Hawkins e o Clarim Diário manipulam quem lê sem precisar contar uma mentira direta?",
+        xp: 15,
+        secretCode: "WAFFLE11",
+        badge: { icon: "🧇", name: "Olhar da Onze", desc: "Lê nas entrelinhas e não cai em manipulações." },
+        lesson: {
+          intro: `Em <em>Stranger Things</em>, depois que a Onze salva os amigos na escola, o jornal da cidade publica uma notícia. No universo do <em>Homem-Aranha</em>, o jornal Clarim Diário faz a mesma coisa com o Peter Parker.`,
+          conceptTitle: "💡 Segredo do 6º Ano: Fato vs. Recorte Maldoso",
+          conceptBody: `Um texto pode falar algo que aconteceu de verdade (um <strong>fato</strong>), mas esconder uma parte importante e usar adjetivos para mudar totalmente o que você sente ao ler! Veja a diferença:`,
+          examples: [
+            { label: "Versão Completa (O que realmente rolou)", text: "Para defender três estudantes do ataque de uma criatura, jovem usa telecinese e parede da escola acaba rachando." },
+            { label: "Versão Manipulada (O que o jornal publicou)", text: "Jovem misteriosa e fora de controle destrói patrimônio de escola pública e assusta moradores pacíficos." }
+          ],
+          takeaway: `Reparou? O jornal não inventou que a parede quebrou, mas <strong>omitiu o monstro</strong> e chamou a Onze de "fora de controle" para fazer o leitor ficar com raiva dela! Ler nas entrelinhas é sempre se perguntar: <em>"O que esse texto está tentando esconder de mim?"</em>`
+        },
+        quiz: {
+          question: "Imagine que o J. Jonah Jameson quer colocar a população contra o Homem-Aranha depois que ele impediu um trem de cair da ponte (mas amassou o vagão). Qual manchete usa o mesmo truque sujo do jornal de Hawkins?",
+          options: [
+            { text: "Mascarado irresponsável causa prejuízo milionário em vagão do metrô durante confusão na ponte!", isCorrect: true, feedback: "Perfeito! Você pegou o truque na hora: ele falou do vagão amassado, mas escondeu de propósito que o Aranha salvou os passageiros!" },
+            { text: "Homem-Aranha usa teias alienígenas invisíveis para hipnotizar o maquinista do trem.", isCorrect: false, feedback: "Quase! Essa frase é uma mentira inventada do zero. O truque que vimos na descoberta é mais sutil: falar algo que aconteceu (o vagão amassado), mas esconder que foi para salvar vidas!" },
+            { text: "Herói aracnídeo impede acidente grave na ponte, apesar de danos materiais no primeiro vagão.", isCorrect: false, feedback: "Olha só: essa manchete é justa e equilibrada! Estamos procurando aquela que tenta manipular o leitor contra o Homem-Aranha escondendo o ato heroico dele." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Agora que você descobriu esse truque, pense nas fofocas da escola, nos vídeos do TikTok ou nas notícias da TV: por que será que as pessoas adoram contar só 'metade da história'?",
+          preFilledMsg: "Oi primo! 🧇 Acabei de passar pela Missão 01 de Hawkins no meu QG! Vou te mandar um áudio contando o que achei sobre esse truque das manchetes pra você liberar minha senha e abrir a Missão 02!"
+        }
+      },
+
+      {
+        id: "m2",
+        order: 2,
+        theme: "spider",
+        color: "from-purple-500 to-fuchsia-600",
+        border: "border-purple-500/40",
+        tag: "🕷️ Missão #02 • Aranhaverso (Matemática)",
+        title: "A Receita do Fluido de Teia",
+        shortDesc: "Desvende como Miles Morales e Gwen Stacy usam frações e porcentagens para não ficarem sem teia no meio do salto!",
+        xp: 15,
+        secretCode: "ARANHA50",
+        badge: { icon: "🕸️", name: "Mente Aracnídea", desc: "Domina frações e proporções do Aranhaverso." },
+        lesson: {
+          intro: `Muita gente acha que <strong>fração</strong> e <strong>porcentagem</strong> são coisas difíceis da escola, mas no laboratório da Gwen Stacy elas são apenas jeitos diferentes de fatiar a mesma pizza (ou o mesmo tubo de teia)!`,
+          conceptTitle: "💡 O Segredo dos 4 Pedaços (Quartos)",
+          conceptBody: `Sempre que você divide qualquer coisa em <strong>4 partes iguais</strong>, fica super fácil calcular de cabeça sem precisar sofrer no papel:`,
+          examples: [
+            { label: "1/4 (Um quarto) = 25%", text: "É a metade da metade! Se o tubo tem 200 ml, a metade é 100 ml, e a metade da metade (1/4) é 50 ml!" },
+            { label: "3/4 (Três quartos) = 75%", text: "São três partes de 50 ml juntas: 50 + 50 + 50 = 150 ml!" }
+          ],
+          takeaway: `Viu que truque genial? Para achar <strong>1/4 (ou 25%)</strong> de qualquer número, você nem precisa armar conta de divisão: basta achar a <strong>metade da metade</strong>!`
+        },
+        quiz: {
+          question: "Miles Morales tem uma bateria dimensional com 400 pontos de energia. Ele gastou 3/4 (75%) dessa bateria num salto gigante. Usando o truque da 'metade da metade', quanto sobrou (1/4) de energia para ele voltar pra casa?",
+          options: [
+            { text: "Sobraram 100 pontos de energia (porque a metade de 400 é 200, e a metade de 200 é 100!).", isCorrect: true, feedback: "Na mosca! Metade de 400 é 200; metade de 200 é 100. Você calculou 1/4 (25%) rapidinho!" },
+            { text: "Sobraram 200 pontos de energia (que é a metade da bateria).", isCorrect: false, feedback: "Quase! 200 pontos é a primeira metade (2/4 ou 50%). Como sobrou apenas 1/4, tire a metade mais uma vez!" },
+            { text: "Sobraram 300 pontos de energia.", isCorrect: false, feedback: "Opa! 300 pontos (3/4) foi a quantidade que ele GASTOU no salto. Quanto sobrou no restinho (1/4) da bateria?" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Para pegar sua senha no WhatsApp e abrir a Missão 03: use o truque da 'metade da metade' de cabeça e conte para o seu primo quanto é 1/4 (25%) de R$ 80,00!",
+          preFilledMsg: "Oi primo! 🕷️ Passei pelo laboratório do Miles Morales na Missão 02! Já calculei de cabeça quanto é 1/4 de 80 reais, escuta meu áudio e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m3",
+        order: 3,
+        theme: "stitch",
+        color: "from-cyan-500 to-blue-600",
+        border: "border-cyan-500/40",
+        tag: "🛸 Missão #03 • Exp. 626 (Ciências)",
+        title: "As Misturas Malucas do Jumba",
+        shortDesc: "Quando o Stitch mistura coisas na cozinha da Lilo, o que é apenas uma mistura física e o que vira uma reação química?",
+        xp: 15,
+        secretCode: "OHANA626",
+        badge: { icon: "🛸", name: "Cientista 626", desc: "Sabe diferenciar misturas e transformações químicas." },
+        lesson: {
+          intro: `O Stitch adora bagunçar a cozinha da Lilo e o laboratório do Dr. Jumba. Na matéria de Ciências do 6º ano, existe um segredo super legal para você olhar para qualquer experiência e saber o que está acontecendo!`,
+          conceptTitle: "💡 Mistura Homogênea, Heterogênea ou Transformação Química?",
+          conceptBody: `Tudo depende de duas perguntas: <em>"Eu consigo ver as partes separadas?"</em> e <em>"Surgiu uma substância nova que não dá pra voltar atrás?"</em>`,
+          examples: [
+            { label: "Água + Sal dissolvido (Mistura Homogênea)", text: "Parece uma coisa só (1 fase)! O sal sumiu na vista, mas continua sendo água salgada." },
+            { label: "Água + Óleo ou Areia (Mistura Heterogênea)", text: "Você vê claramente as partes separadas (2 ou mais fases). Eles não se misturam por completo!" },
+            { label: "Bolo assando ou Papel queimando (Transformação Química)", text: "Mudou de cor, cheiro ou soltou gás, e NÃO dá para voltar a ser ovo cru e farinha! Nasceu algo novo." }
+          ],
+          takeaway: `Resumo de cientista: se continua sendo a mesma coisa (como gelo derretendo ou açúcar na água), é apenas físico. Se virou algo totalmente novo (como ferrugem ou bolo assado), é <strong>Transformação Química</strong>!`
+        },
+        quiz: {
+          question: "O Stitch resolveu fazer três bagunças na cozinha da Lilo: (1) colocou cubos de gelo num copo com água e óleo; (2) queimou uma torrada até virar carvão; (3) dissolveu uma colherinha de açúcar num copo de água. Qual dessas bagunças é uma Transformação Química (onde nasce uma substância nova)?",
+          options: [
+            { text: "A bagunça (2): queimar a torrada até virar carvão e fumaça, pois não dá para ela voltar a ser pão!", isCorrect: true, feedback: "Show de bola! Mudou de cor, liberou fumaça/cheiro e o pão virou carvão — uma transformação química clássica!" },
+            { text: "A bagunça (3): dissolver o açúcar na água até ele ficar invisível.", isCorrect: false, feedback: "Olha a pegadinha! Quando o açúcar dissolve na água, ele só fica invisível (mistura homogênea), mas se a água evaporar, o açúcar continua lá intacto!" },
+            { text: "A bagunça (1): juntar água, gelo e óleo no mesmo copo.", isCorrect: false, feedback: "Essa é uma mistura heterogênea (vemos 3 fases: água, gelo e óleo), mas nenhuma substância nova foi criada!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Olhe ao redor na sua casa ou na cozinha: conte em um áudio para o seu primo 1 exemplo de Mistura e 1 exemplo de Transformação Química da vida real para ganhar a senha!",
+          preFilledMsg: "Oi primo! 🛸 Concluí o laboratório do Stitch na Missão 03! Vou te mandar um áudio com exemplos de mistura e transformação química aqui de casa pra ganhar a senha!"
+        }
+      },
+
+      {
+        id: "m4",
+        order: 4,
+        theme: "futuro",
+        color: "from-amber-500 to-orange-600",
+        border: "border-amber-500/40",
+        tag: "🧭 Missão #04 • Bússola do Futuro",
+        title: "Escolas que Parecem Universidades",
+        shortDesc: "Descubra um segredo sobre o Ensino Médio no Rio de Janeiro que quase ninguém conta para quem está no 6º ano!",
+        xp: 15,
+        secretCode: "FUTURO13",
+        badge: { icon: "🧭", name: "Viajante do Futuro", desc: "Conhece o caminho das escolas técnicas e federais." },
+        lesson: {
+          intro: `Sabe quando nos filmes e séries (como na escola do Miles Morales em <em>Aranhaverso</em> ou no Clube de Ciências de <em>Stranger Things</em>) os alunos têm laboratórios incríveis, clubes de artes, robótica, cinema e projetos gigantes?`,
+          conceptTitle: "💡 Isso existe de verdade no Rio de Janeiro — e é 100% gratuito!",
+          conceptBody: `Muita gente só descobre isso tarde demais, mas existem escolas públicas especiais (chamadas de <strong>Escolas Técnicas e Federais</strong>, como o <strong>IFRJ, CEFET, Colégio Pedro II e FAETEC</strong>). Veja por que elas são diferentes:`,
+          examples: [
+            { label: "Você escolhe uma área que ama junto com o Ensino Médio", text: "Em vez de ter só aula comum, você pode fazer Ensino Médio integrado com Produção Cultural, Biotecnologia, Informática, Jogos, Química, Meio Ambiente ou Belas Artes!" },
+            { label: "Por que descobrir isso no 6º ano é um superpoder?", text: "Para entrar nelas no 1º ano do Ensino Médio, você faz uma prova quando estiver no 9º ano. Quem descobre isso agora no 6º ano tem mais de 3 anos para ir se preparando com calma!" }
+          ],
+          takeaway: `Estar no 6º ano aos 13 anos te dá uma vantagem gigante: sua mente já é mais madura para entender os conteúdos e você tem tempo de sobra para construir seu futuro junto com o seu primo!`
+        },
+        quiz: {
+          question: "Qual é o segredo para conquistar uma vaga nessas escolas incríveis (como IFRJ, CEFET, Pedro II ou FAETEC) quando você chegar no 9º ano?",
+          options: [
+            { text: "Ir construindo uma base forte em Português, Matemática e Ciências desde o Fundamental para mandar super bem na prova seletiva do 9º ano!", isCorrect: true, feedback: "Exatamente! Não precisa pagar nada nem ter indicação: o passaporte de entrada é o seu conhecimento — exatamente o que estamos treinando aqui!" },
+            { text: "Pagar uma mensalidade caríssima todos os meses, pois são escolas particulares.", isCorrect: false, feedback: "Pelo contrário! Todas essas instituições (IFRJ, CEFET, Pedro II e FAETEC) são 100% públicas e gratuitas!" },
+            { text: "Ser sorteada na loteria ou ter mais de 18 anos de idade.", isCorrect: false, feedback: "Nada disso! Você entra justamente para cursar o Ensino Médio lá dentro, através do processo seletivo no 9º ano." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Se você pudesse estudar numa escola cheia de laboratórios e projetos no Ensino Médio, qual tipo de curso você acharia mais incrível fazer (Artes/Cultura, Criação de Jogos/Tecnologia, Biologia/Saúde, Química...)?",
+          preFilledMsg: "Oi primo! 🧭 Acabei de abrir o mapa secreto da Missão 04! Vou te mandar um áudio contando qual área eu acharia mais legal estudar numa escola técnica/federal!"
+        }
+      },
+
+      // ---------------- FASE 2: APROFUNDAMENTO (25 XP CADA = 100 XP) ----------------
+      {
+        id: "m5",
+        order: 5,
+        theme: "hawkins",
+        color: "from-rose-500 to-red-600",
+        border: "border-rose-500/40",
+        tag: "🧇 Missão #05 • Hawkins (Português)",
+        title: "O Sarcasmo da Max e da Erica",
+        shortDesc: "Aprenda a decifrar tirinhas e diálogos onde os personagens dizem exatamente o contrário do que estão pensando!",
+        xp: 25,
+        secretCode: "MAX1986",
+        badge: { icon: "🎧", name: "Detector de Ironia", desc: "Domina o duplo sentido, o humor e a ironia nas tirinhas." },
+        lesson: {
+          intro: `Em <em>Stranger Things</em>, a Max e a Erica (irmã do Lucas) são mestres em usar a <strong>ironia</strong>. Nas aulas e provas de Português do 6º ano, as <strong>tirinhas em quadrinhos</strong> adoram usar esse mesmo recurso!`,
+          conceptTitle: "💡 O Segredo das Tirinhas: Palavra vs. Imagem",
+          conceptBody: `A <strong>ironia</strong> acontece quando alguém diz o <em>oposto</em> do que realmente quer dizer, geralmente para fazer graça, reclamar ou criticar uma situação. Para não cair na pegadinha de uma tirinha, você precisa somar o <strong>texto do balão</strong> com a <strong>expressão do rosto e o cenário</strong>:`,
+          examples: [
+            { label: "Quadrinho 1 e 2 (O Cenário do Caos)", text: "Chove muito frio no Mundo Invertido, a lanterna do Dustin apaga e um bando de morcegos-demônio aparece fazendo barulho." },
+            { label: "Quadrinho 3 (A Fala Irônica da Max)", text: "Com os braços cruzados e cara de tédio, Max diz: 'Nossa, que passeio maravilhoso no parque! Só faltou o sorvete.'" }
+          ],
+          takeaway: `Se você ler só a frase da Max isolada, parece que ela está feliz. Mas juntando com o cenário (morcegos e frio) e a expressão facial dela, fica claro que ela quis dizer: <em>"Esse lugar é horrível e estamos em perigo!"</em>`
+        },
+        quiz: {
+          question: "Imagine uma tirinha de 3 quadrinhos: (1) O despertador toca às 5h30 da manhã numa segunda-feira chuvosa; (2) O personagem tropeça no tapete e derrama café na camisa limpa; (3) Olhando no espelho com olheiras gigantes, ele diz: 'Comecei a semana com o pé direito, que sorte a minha!'. Qual é o efeito de sentido dessa fala no último quadrinho?",
+          options: [
+            { text: "Ele está usando a ironia para expressar a frustração de tudo ter dado errado logo cedo, dizendo o oposto do que sente.", isCorrect: true, feedback: "Perfeito! Você cruzou a imagem (café derramado, olheiras, chuva) com a fala ('que sorte a minha!') e identificou a ironia na hora!" },
+            { text: "Ele está sendo sincero e otimista, pois adora acordar cedo em dias de chuva e trocar de camisa.", isCorrect: false, feedback: "Cuidado com a leitura literal! Olhe as pistas visuais descritas: tropeçar, sujar a camisa limpa e estar com olheiras mostram que ele não achou isso uma sorte de verdade." },
+            { text: "Ele cometeu um erro de português, porque não sabe o que significa a expressão 'começar com o pé direito'.", isCorrect: false, feedback: "Na verdade, ele conhece muito bem a expressão! Ele usou 'pé direito' de propósito de forma irônica justamente porque começou o dia no maior azar." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Agora é sua vez de ser irônica igual à Max e à Erica! Grave um áudio para o seu primo criando uma frase bem irônica para uma situação chata do dia a dia (tipo quando a internet cai bem no meio de um jogo ou vídeo)!",
+          preFilledMsg: "Oi primo! 🎧 Passei pela Missão 05 de Hawkins sobre tirinhas e ironia! Escuta aí no áudio a frase irônica que eu criei e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m6",
+        order: 6,
+        theme: "spider",
+        color: "from-purple-500 to-fuchsia-600",
+        border: "border-purple-500/40",
+        tag: "🕷️ Missão #06 • Aranhaverso (Matemática)",
+        title: "O Código do Colisor Dimensional",
+        shortDesc: "Por que 10 + 2 x 5 dá 20 e não 60? Descubra a hierarquia secreta da matemática para desativar o colisor!",
+        xp: 25,
+        secretCode: "TEIA2099",
+        badge: { icon: "⚡", name: "Hacker Dimensional", desc: "Desvenda expressões numéricas respeitando a ordem de prioridade." },
+        lesson: {
+          intro: `Para fechar uma fenda no Aranhaverso, o Homem-Aranha 2099 (Miguel O'Hara) precisa digitar o resultado de uma <strong>Expressão Numérica</strong> no computador. Se ele resolver a conta na ordem errada, o portal explode!`,
+          conceptTitle: "💡 A Fila VIP das Operações Matemáticas",
+          conceptBody: `Quando lemos um texto em português, vamos sempre da esquerda para a direita. Mas na Matemática existe uma <strong>Fila de Prioridade (Fila VIP)</strong>! Veja quem passa na frente:`,
+          examples: [
+            { label: "1º Lugar Absoluto: O Escudo dos Parênteses ( )", text: "Tudo o que estiver protegido dentro de parênteses ( ) precisa ser resolvido primeiro, não importa qual conta seja!" },
+            { label: "2º Lugar: Multiplicação (×) e Divisão (÷)", text: "Elas são 'superoperações' (atalhos poderosos) e SEMPRE são resolvidas antes de somar ou diminuir! Exemplo: em 10 + 2 × 5, fazemos primeiro 2 × 5 = 10, e só depois 10 + 10 = 20!" },
+            { label: "3º Lugar: Soma (+) e Subtração (-)", text: "São as mais tranquilas: ficam para o final, depois que os parênteses e as multiplicações/divisões já foram resolvidos." }
+          ],
+          takeaway: `Regra de Ouro do Aranhaverso: Antes de sair somando o primeiro número que aparece na frente, passe o olho na expressão toda e procure os <strong>Parênteses ( )</strong> e as <strong>Multiplicações/Divisões</strong>!`
+        },
+        quiz: {
+          question: "No painel do colisor apareceu a seguinte expressão para destravar a porta:  20 - 2 × (3 + 4). Seguindo a Fila VIP (1º Parênteses, 2º Multiplicação, 3º Subtração), qual é o código correto?",
+          options: [
+            { text: "O código é 6! (Primeiro o parêntese: 3 + 4 = 7; depois a multiplicação: 2 × 7 = 14; e por fim a subtração: 20 - 14 = 6).", isCorrect: true, feedback: "Perfeito!! Você respeitou toda a Fila VIP: resolveu o escudo (3+4=7), depois a multiplicação (2×7=14) e fechou com 20 - 14 = 6!" },
+            { text: "O código é 126! (Porque 20 - 2 dá 18, e 18 vezes 7 dá 126).", isCorrect: false, feedback: "Opa, armadilha clássica! Você fez a subtração (20 - 2) antes da multiplicação! Lembre-se: o '2' está grudado multiplicando o parêntese, então precisamos fazer 2 × 7 antes de tirar do 20!" },
+            { text: "O código é 18! (Porque 2 × 3 dá 6, depois 20 - 6 dá 14, mais 4 dá 18).", isCorrect: false, feedback: "Quase! Você esqueceu do 1º lugar da Fila VIP: o Escudo dos Parênteses! Resolva primeiro o (3 + 4) lá dentro antes de multiplicar por 2." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Desafio relâmpago para destravar a senha com o seu primo: quanto dá a expressão  10 + 3 × 4 ? Mande um áudio para ele explicando qual conta você fez primeiro!",
+          preFilledMsg: "Oi primo! ⚡ Resolvi o código do Colisor na Missão 06! Já sei quanto dá 10 + 3 x 4 sem cair na pegadinha, ouve meu áudio e me manda a senha!"
+        }
+      },
+
+      {
+        id: "m7",
+        order: 7,
+        theme: "stitch",
+        color: "from-cyan-500 to-blue-600",
+        border: "border-cyan-500/40",
+        tag: "🛸 Missão #07 • Exp. 626 (Ciências)",
+        title: "O Segredo do 'Sentido Aranha'",
+        shortDesc: "Como o cérebro, a medula e as células chamadas neurônios fazem seu corpo reagir ao perigo em milésimos de segundo?",
+        xp: 25,
+        secretCode: "NEURONIO626",
+        badge: { icon: "🧠", name: "Mestre dos Reflexos", desc: "Entende como as células e o sistema nervoso comandam o corpo." },
+        lesson: {
+          intro: `Tanto o Stitch quanto o Homem-Aranha desviam de perigos numa velocidade absurda. Mas você sabia que o seu próprio corpo tem um sistema elétrico digno de super-herói estudado em Ciências no 6º ano?`,
+          conceptTitle: "💡 Células, Neurônios e o Atalho do Ato Reflexo",
+          conceptBody: `Todo ser vivo é construído por blocos microscópicos vivos chamados <strong>células</strong> (é como se cada célula fosse uma pecinha de Lego com vida própria!). No nosso <strong>Sistema Nervoso</strong>, existem células especiais em formato de estrela chamadas <strong>neurônios</strong>:`,
+          examples: [
+            { label: "Os Neurônios (O WhatsApp do Corpo)", text: "Os neurônios se conectam formando uma rede que leva mensagens elétricas (impulsos nervosos) dos seus sentidos (olhos, pele, ouvidos) até o cérebro a mais de 300 km/h!" },
+            { label: "Ato Voluntário vs. Ato Reflexo (O Superpoder Real)", text: "Quando você decide chutar uma bola, o <strong>cérebro</strong> pensa e manda a ordem (Ato Voluntário). Mas se você encosta sem querer numa panela pelando, a mensagem nem espera chegar no cérebro: a sua <strong>Medula Espinhal</strong> (que fica dentro da coluna) toma um atalho e puxa sua mão na hora para te salvar! Isso é o <strong>Ato Reflexo</strong>!" }
+          ],
+          takeaway: `Ou seja: quando você tira a mão de algo quente ou pisca o olho no susto antes mesmo de pensar, é a sua <strong>medula espinhal</strong> e seus <strong>neurônios</strong> ativando o seu "Sentido Aranha" biológico!`
+        },
+        quiz: {
+          question: "Se o Stitch encostar o dedo em uma chapa muito quente no fogão da Lilo e puxar a mão instantaneamente (antes mesmo de o cérebro dele processar a dor), quem comandou essa resposta ultrarrápida de emergência?",
+          options: [
+            { text: "Foi um Ato Reflexo comandado pela medula espinhal através dos neurônios, usando um 'atalho' para proteger o corpo mais rápido!", isCorrect: true, feedback: "Sensacional! A medula espinhal dispara a ordem de puxar a mão imediatamente, poupando frações preciosas de segundo!" },
+            { text: "Foram as células dos ossos do braço, que pensam sozinhas sem precisar do sistema nervoso.", isCorrect: false, feedback: "Os ossos e músculos ajudam a puxar o braço, mas eles só se mexem porque recebem a ordem elétrica das células do sistema nervoso (os neurônios)!" },
+            { text: "Foi um Ato Voluntário demorado, em que ele primeiro parou para refletir se a chapa estava quente ou fria.", isCorrect: false, feedback: "Se o nosso corpo esperasse a gente refletir com calma diante de uma queimadura, o machucado seria muito pior! Por isso existe o atalho automático do Ato Reflexo." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Para ganhar a senha desta missão: explique em um áudio rápido para o seu primo, com as suas próprias palavras, o que são as células (e os neurônios) e conte uma situação em que o seu 'Ato Reflexo' já te salvou!",
+          preFilledMsg: "Oi primo! 🧠 Acabei de estudar sobre células, neurônios e o Sentido Aranha na Missão 07! Escuta meu áudio aí e me libera a senha!"
+        }
+      },
+
+      {
+        id: "m8",
+        order: 8,
+        theme: "futuro",
+        color: "from-amber-500 to-orange-600",
+        border: "border-amber-500/40",
+        tag: "🧭 Missão #08 • Bússola do Futuro",
+        title: "O Segredo das Olimpíadas e Bolsas",
+        shortDesc: "Sabia que alunos do 6º ano podem participar de desafios nacionais nas escolas e até ganhar bolsas de cientista júnior?",
+        xp: 25,
+        secretCode: "MEDALHA13",
+        badge: { icon: "🥇", name: "Cientista Júnior", desc: "Conhece as Olimpíadas do Conhecimento e a Iniciação Científica." },
+        lesson: {
+          intro: `Em <em>Stranger Things</em>, o Dustin, o Mike e o Lucas participam de clubes e feiras de ciências na escola. Muita gente não sabe, mas no Brasil qualquer estudante a partir do <strong>6º ano</strong> pode participar das <strong>Olimpíadas do Conhecimento</strong>!`,
+          conceptTitle: "💡 O Que São as Olimpíadas Escolares (como a OBMEP e a ONC)?",
+          conceptBody: `Apesar do nome "Olimpíada", não é de correr na quadra: são desafios super criativos de lógica, ciências, história ou astronomia que acontecem todo ano nas escolas brasileiras! Veja por que vale muito a pena participar desde o 6º ano:`,
+          examples: [
+            { label: "Ninguém perde nada (e todo mundo ganha treino!)", text: "A nota da olimpíada não reprova ninguém no boletim! Pelo contrário: ela serve como um treino incrível para você perder o nervosismo de fazer provas especiais (como a do IFRJ/CEFET/Pedro II no 9º ano)." },
+            { label: "Medalhas e Bolsa de Iniciação Científica Júnior!", text: "Na OBMEP (Olimpíada de Matemática das Escolas Públicas), por exemplo, o Nível 1 é exclusivo para alunos do 6º e 7º ano. Quem se destaca ganha medalhas, menções honrosas e pode até receber uma bolsa em dinheiro do governo (PIC Júnior) para estudar ciências!" }
+          ],
+          takeaway: `Fique sempre de olho quando a sua escola anunciar inscrições para a <strong>OBMEP</strong> (Matemática), <strong>OBA</strong> (Astronomia) ou <strong>ONC</strong> (Ciências) — e avise o seu primo para vocês se divertirem treinando juntos!`
+        },
+        quiz: {
+          question: "Por que participar de Feiras de Ciências e Olimpíadas Escolares (como o Nível 1 da OBMEP) já no 6º e 7º ano é uma jogada de mestre para o seu futuro?",
+          options: [
+            { text: "Porque desenvolve o raciocínio lógico sem pressão de nota no boletim, dá experiência em provas desafiadoras e ainda pode render medalhas e bolsas de estudo!", isCorrect: true, feedback: "Perfeito! É o melhor treino possível para você chegar no 9º ano voando baixo e cheia de confiança!" },
+            { text: "Porque se você errar uma questão na Olimpíada, você perde pontos no boletim da escola.", isCorrect: false, feedback: "Nunca! As Olimpíadas do Conhecimento são desafios extras para estimular talentos — elas só somam conquistas, nunca tiram nota sua!" },
+            { text: "Porque só alunos do último ano do Ensino Médio podem se inscrever nelas.", isCorrect: false, feedback: "Errado! O Nível 1 da OBMEP e várias outras olimpíadas começam exatamente no 6º ano do Ensino Fundamental!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Pergunte ou lembre se na sua escola já rolou alguma Feira de Ciências ou prova da OBMEP/OBA este ano e mande um áudio para o seu primo contando qual tema você gostaria de apresentar se fizesse um projeto científico!",
+          preFilledMsg: "Oi primo! 🥇 Acabei de ver a Missão 08 sobre Olimpíadas Escolares e Iniciação Científica Júnior! Vou te mandar um áudio contando minha ideia, me passa a senha!"
+        }
+      },
+
+      // ---------------- FASE 3: CONSCIÊNCIA DE CLASSE & MUNDO (35 XP CADA = 140 XP) ----------------
+      {
+        id: "m9",
+        order: 9,
+        theme: "sociedade",
+        color: "from-emerald-500 to-teal-600",
+        border: "border-emerald-500/40",
+        tag: "✊ Missão #09 • Sociedade & Trabalho",
+        title: "O Herói que Paga Aluguel e Pega Metrô",
+        shortDesc: "Por que o Homem-Aranha trabalha tanto e continua sem dinheiro, enquanto o dono do jornal fica milionário?",
+        xp: 35,
+        secretCode: "CLASSE13",
+        badge: { icon: "✊", name: "Olhar de Classe", desc: "Reconhece o valor de quem trabalha e entende as desigualdades sociais." },
+        lesson: {
+          intro: `Você já reparou que o <em>Homem-Aranha</em> (tanto o Peter Parker quanto o Miles Morales) é muito diferente de heróis bilionários? A Tia May faz contas para pagar a luz, o Peter anda de metrô e precisa trabalhar vendendo fotos para ajudar em casa!`,
+          conceptTitle: "💡 O Segredo Econômico: Quem Produz a Riqueza?",
+          conceptBody: `Olhe o que acontece no jornal <em>Clarim Diário</em> e compare com o mundo real:`,
+          examples: [
+            { label: "Quem faz o trabalho duro (O Trabalhador)", text: "O Peter Parker sobe nos prédios, corre perigo e tira a foto exclusiva do Homem-Aranha. Sem a foto dele e sem o trabalho dos gráficos e entregadores, o jornal seria uma folha em branco!" },
+            { label: "Quem fica com a maior parte do lucro (O Patrão)", text: "O J. Jonah Jameson é o dono do jornal. Ele paga uma mixaria pela foto do Peter, vende milhares de jornais pela cidade e fica rico com o trabalho que o Peter fez!" }
+          ],
+          takeaway: `Ter <strong>consciência de classe</strong> é perceber que tudo o que funciona no nosso país — a comida que chega na mesa, o ônibus que roda, a escola limpa — existe graças à <strong>classe trabalhadora</strong> (como a nossa família!). Por isso, todo trabalhador merece salário digno, respeito e direitos!`
+        },
+        quiz: {
+          question: "Muitas vezes ouvimos por aí que 'quem trabalha muito sempre fica rico, e quem é pobre é porque tem preguiça'. Olhando para a vida da Tia May, do Peter Parker e de milhões de trabalhadores brasileiros que acordam às 5h da manhã todo dia, por que essa frase é uma mentira injusta?",
+          options: [
+            { text: "Porque milhões de trabalhadores se esforçam o dia inteiro construindo a riqueza do país, mas recebem salários baixos devido à desigualdade na divisão dos lucros e das oportunidades.", isCorrect: true, feedback: "Exatamente! O esforço do trabalhador é gigante; o que falta na sociedade é uma divisão justa da riqueza e das oportunidades!" },
+            { text: "Porque só trabalha duro quem é dono de grandes empresas e bancos.", isCorrect: false, feedback: "Pense em quem pega ônibus lotado cedo, limpa a cidade, cozinha, ensina e constrói os prédios: esse é o trabalho mais pesado que existe!" },
+            { text: "Porque o Peter Parker não gosta de trabalhar nem de ajudar a Tia May.", isCorrect: false, feedback: "Pelo contrário! Ele estuda, trabalha e ainda salva a cidade, mas o salário que o chefe paga mal cobre as contas da casa." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Pense nas pessoas da nossa família (pais, avós, tios): mande um áudio para o seu primo contando por que devemos ter muito orgulho da história de trabalho da nossa família e por que todo trabalhador merece ter tempo para descansar e viver bem!",
+          preFilledMsg: "Oi primo! ✊ Acabei de fazer a Missão 09 sobre o Homem-Aranha e o valor dos trabalhadores! Escuta meu áudio aí e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m10",
+        order: 10,
+        theme: "sociedade",
+        color: "from-emerald-500 to-teal-600",
+        border: "border-emerald-500/40",
+        tag: "✊ Missão #10 • Direitos Humanos & História",
+        title: "Os Trailers de Hawkins e o Perigo do Ódio",
+        shortDesc: "Por que a cidade inteira acreditou rápido no garoto rico e culpou o Eddie Munson sem nenhuma prova?",
+        xp: 35,
+        secretCode: "DEMOCRACIA",
+        badge: { icon: "🛡️", name: "Guardiã dos Direitos", desc: "Identifica preconceitos, bodes expiatórios e discursos autoritários." },
+        lesson: {
+          intro: `Na 4ª temporada de <em>Stranger Things</em>, a cidade de Hawkins é dividida: de um lado ficam as casas grandes dos moradores ricos; do outro, o parque de trailers onde moram a Max (com a mãe trabalhando dobrado) e o Eddie Munson (com o tio que trabalha na fábrica à noite).`,
+          conceptTitle: "💡 Como o Preconceito e o Autoritarismo Funcionam?",
+          conceptBody: `Quando acontece uma tragédia na cidade, repare como dois personagens são tratados de formas opostas:`,
+          examples: [
+            { label: "O Bode Expiatório (Culpar o mais vulnerável)", text: "O Eddie é pobre, mora num trailer, se veste diferente e ouve rock. Sem nenhuma investigação ou prova, a cidade inteira decide que ele é um 'monstro culpado'." },
+            { label: "O Líder Autoritário (A semente do Fascismo)", text: "O Jason (rico, popular e bem-vestido) usa o medo das pessoas nos discursos dele para criar uma 'caçada humana', passando por cima da lei e querendo fazer justiça com as próprias mãos contra quem pensa diferente." }
+          ],
+          takeaway: `Na História e na política real, o <strong>fascismo e o autoritarismo</strong> nascem exatamente assim: líderes mal-intencionados usam o medo e a mentira para fazer o povo odiar minorias, pobres ou quem é diferente, destruindo os <strong>Direitos Humanos</strong> e a democracia!`
+        },
+        quiz: {
+          question: "Quando vemos na internet ou na política alguém tentando culpar um grupo vulnerável (como pessoas pobres, imigrantes ou minorias) por todos os problemas do país e incentivando a violência contra eles, qual atitude demonstra verdadeiro pensamento crítico?",
+          options: [
+            { text: "Questionar esse discurso de ódio, exigir provas reais e defender que todas as pessoas têm direitos humanos iguais, independentemente de classe social, cor ou estilo.", isCorrect: true, feedback: "Perfeito! O pensamento crítico e a empatia são os maiores escudos contra o fascismo e a manipulação pelo medo!" },
+            { text: "Apoiar a perseguição imediatamente, pois quem fala gritando no microfone e tem aparência rica sempre tem razão.", isCorrect: false, feedback: "Lembre-se do Jason em Hawkins: falar bonito em público ou ter dinheiro nunca significa estar dizendo a verdade!" },
+            { text: "Achar que apenas as pessoas ricas deveriam ter direito de se defender na justiça.", isCorrect: false, feedback: "Na democracia e nos Direitos Humanos, a lei e a dignidade precisam proteger a todos igualmente!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Mande um áudio para o seu primo respondendo: por que julgar uma pessoa pelo lugar onde ela mora, pela roupa que ela veste ou pela condição financeira dela é uma injustiça gigante?",
+          preFilledMsg: "Oi primo! 🛡️ Concluí a Missão 10 sobre o Eddie Munson, preconceito de classe e direitos humanos! Ouve meu áudio e me manda a senha!"
+        }
+      },
+
+      {
+        id: "m11",
+        order: 11,
+        theme: "sociedade",
+        color: "from-emerald-500 to-teal-600",
+        border: "border-emerald-500/40",
+        tag: "✊ Missão #11 • Empatia & Coletividade",
+        title: "A Luta da Nani e a Força do Coletivo",
+        shortDesc: "O que a história de Lilo & Stitch nos ensina sobre desigualdade e sobre não deixar ninguém para trás?",
+        xp: 35,
+        secretCode: "COLETIVO",
+        badge: { icon: "🌺", name: "Coração Solidário", desc: "Compreende os direitos sociais e a força da solidariedade coletiva." },
+        lesson: {
+          intro: `Quando a gente assiste <em>Lilo & Stitch</em> quando é pequeno, só presta atenção nas palhaçadas do Stitch. Mas, aos 13 anos, você consegue enxergar uma camada muito mais profunda da história: a luta diária da <strong>Nani</strong> (a irmã mais velha da Lilo).`,
+          conceptTitle: "💡 Direitos Sociais e o Sentido Político de 'Ohana'",
+          conceptBody: `A Nani é uma jovem trabalhadora que tenta cuidar da irmãzinha enquanto enfrenta a dura realidade social do Havaí:`,
+          examples: [
+            { label: "O contraste social invisível", text: "Enquanto turistas ricos passeiam pela ilha como se tudo fosse uma festa, os moradores locais como a Nani enfrentam aluguéis caros e empregos difíceis para conseguir manter a casa de pé." },
+            { label: "Solidariedade vs. Individualismo", text: "Hoje em dia, muita gente prega o 'cada um por si'. Mas a filosofia de Ohana ('nunca abandonar ou esquecer ninguém') mostra que uma sociedade justa só existe quando cuidamos uns dos outros e garantimos que toda família tenha saúde, moradia, educação e comida!" }
+          ],
+          takeaway: `Saúde pública (como o nosso SUS), escola pública de qualidade, transporte e cultura <strong>não são favores</strong>: são <strong>Direitos Sociais</strong> conquistados com muita luta para que nenhuma família fique desamparada!`
+        },
+        quiz: {
+          question: "Levar o princípio de 'Ohana' (não deixar ninguém para trás) para a vida em sociedade significa defender que:",
+          options: [
+            { text: "Toda pessoa tem direito a educação, saúde, moradia e cultura dignas, e devemos construir uma sociedade solidária que apoie quem mais precisa em vez de pensar só no próprio umbigo.", isCorrect: true, feedback: "Lindo demais! Pensar no coletivo e defender os serviços públicos que atendem a população é a forma mais bonita de humanidade." },
+            { text: "Cada pessoa deve resolver seus problemas sozinha, e quem não tiver dinheiro não deve ter acesso a hospitais ou boas escolas.", isCorrect: false, feedback: "Esse é o pensamento individualista extremo, que gera abandono e desigualdade." },
+            { text: "Apenas os turistas que visitam uma cidade merecem ter acesso às praias, parques e lazer.", isCorrect: false, feedback: "A cidade, a natureza e a cultura pertencem antes de tudo a quem vive e trabalha nela todos os dias!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Grave um áudio para o seu primo contando: se você fosse prefeita ou presidente por uma semana, qual seria a primeira coisa que você faria para melhorar a vida das famílias trabalhadoras do seu bairro?",
+          preFilledMsg: "Oi primo! 🌺 Fiz a Missão 11 sobre a Nani, direitos sociais e coletividade! Escuta no áudio o que eu faria pelas famílias do nosso bairro e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m12",
+        order: 12,
+        theme: "futuro",
+        color: "from-amber-500 to-orange-600",
+        border: "border-amber-500/40",
+        tag: "🧭 Missão #12 • Bússola & Consciência",
+        title: "Quando Você Avança, a Família Avança Junto",
+        shortDesc: "Por que muitos pais não tiveram acesso a certas informações no passado e por que o seu estudo é uma conquista coletiva?",
+        xp: 35,
+        secretCode: "POTENCIAL13",
+        badge: { icon: "🌟", name: "Orgulho da Família", desc: "Une conhecimento, consciência de classe e sonhos para transformar o futuro." },
+        lesson: {
+          intro: `Imagine uma corrida de 100 metros rasos. O Corredor A começa na linha de largada, descansado, com tênis profissional e um treinador explicando todas as regras. O Corredor B começa 50 metros atrás, descalço, depois de trabalhar o dia inteiro, e ninguém nunca contou para ele o mapa da pista.`,
+          conceptTitle: "💡 Desmontando a Culpa e Construindo Pontes",
+          conceptBody: `Essa corrida explica a história da educação no Brasil:`,
+          examples: [
+            { label: "Por que nossos pais ou avós muitas vezes pararam de estudar cedo?", text: "Nunca foi por 'falta de inteligência' ou 'falta de vontade'! Foi porque, na época deles, filhos de trabalhadores precisavam trabalhar desde muito novos e o sistema escondia deles informações preciosas (como a existência de escolas técnicas e universidades públicas)." },
+            { label: "O que muda agora com você aos 13 anos?", text: "Hoje você tem quem segure na sua mão e te mostre o mapa da pista! Quando uma jovem da nossa família descobre como o sistema funciona, estuda com pensamento crítico e ocupa uma escola pública de excelência, ela realiza o sonho de gerações inteiras!" }
+          ],
+          takeaway: `Nunca deixe ninguém fazer você duvidar da sua capacidade. Você carrega a força de quem veio antes de você e tem todas as ferramentas para voar muito alto!`
+        },
+        quiz: {
+          question: "Por que entender essa desigualdade histórica na educação é tão importante para a sua caminhada agora no 6º ano?",
+          options: [
+            { text: "Porque nos faz valorizar o esforço dos nossos pais, tira qualquer sentimento injusto de inferioridade e nos mostra que ocupar os melhores espaços de estudo é um direito nosso!", isCorrect: true, feedback: "Você zerou a trilha com chave de ouro! Conhecimento + consciência de classe = ninguém segura você!" },
+            { text: "Porque prova que filhos de trabalhadores não devem tentar entrar em escolas técnicas ou universidades.", isCorrect: false, feedback: "Jamais! As escolas técnicas, federais e universidades públicas são construídas com o imposto do povo trabalhador e pertencem a você!" },
+            { text: "Porque mostra que ter informação e apoio de quem já conhece o caminho não faz diferença nenhuma.", isCorrect: false, feedback: "Faz toda a diferença do mundo! É exatamente por isso que este QG existe: para você ter o mapa completo na mão desde os 13 anos!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Missão Especial de Fechamento da Trilha: mande um áudio para o seu primo contando qual foi a descoberta que mais abriu a sua mente nessas 12 missões e qual é o maior sonho que você quer realizar nos próximos anos!",
+          preFilledMsg: "Oi primo! 🌟 Cheguei na Missão 12 do meu QG! Vou te mandar um áudio muito especial contando o que mais gostei de descobrir até aqui!"
+        }
+      },
+      // ---------------- FASE 4: INTERDISCIPLINARIDADE, INTERSECCIONALIDADE & CARÁTER (40 XP CADA = 160 XP) ----------------
+      {
+        id: "m13",
+        order: 13,
+        theme: "stitch",
+        color: "from-cyan-500 to-blue-600",
+        border: "border-cyan-500/40",
+        tag: "🚀 Missão #13 • Ciência, Matemática & Representatividade",
+        title: "As Mulheres Negras que Calculam as Estrelas",
+        shortDesc: "Como a matemática e a astronomia levaram a humanidade ao espaço pelas mãos de cientistas negras que a história tentou esconder?",
+        xp: 40,
+        secretCode: "ESTRELAS13",
+        badge: { icon: "🚀", name: "Mente Estelar", desc: "Une Matemática, Ciência e a força das mulheres negras na história." },
+        lesson: {
+          intro: `Em <em>Stranger Things</em>, a Erica Sinclair dá um show de matemática e lógica. Nos filmes da Marvel, a Shuri é a mente mais brilhante da tecnologia. Mas, na vida real, por muito tempo os livros fingiram que a Ciência era feita apenas por homens brancos!`,
+          conceptTitle: "💡 Interseccionalidade na Ciência: Matemática + Astronomia + Justiça Histórica",
+          conceptBody: `Para um foguete sair da Terra (Ciências: vencer a <strong>força da gravidade</strong>) e pousar na Lua sem se perder no espaço, é preciso calcular a velocidade e a curva exata da órbita (Matemática). Conheça duas cientistas negras reais que mudaram a história:`,
+          examples: [
+            { label: "Katherine Johnson (A Matemática da NASA)", text: "Nos anos 1960, mesmo enfrentando leis racistas e machistas nos EUA, Katherine calculou à mão (com lápis e papel!) a trajetória exata que levou o foguete Apollo 11 até a Lua e trouxe os astronautas vivos de volta!" },
+            { label: "Dra. Jaqueline Goes de Jesus (Cientista Brasileira)", text: "Biomédica negra nascida na Bahia, liderou a equipe que descobriu a sequência genética do vírus da Covid-19 no Brasil em apenas 48 horas (enquanto a média no resto do mundo era de 15 dias)!" }
+          ],
+          takeaway: `A Ciência e a Matemática pertencem a todas nós! Quando uma menina conhece a história de Katherine Johnson e da Dra. Jaqueline Goes, ela descobre que nenhum preconceito de raça ou de gênero pode limitar o tamanho do seu cérebro!`
+        },
+        quiz: {
+          question: "Vamos unir Matemática e Ciência como a Katherine Johnson! Imagine que uma sonda espacial viaja a 10 quilômetros por segundo para vencer a gravidade. Enquanto isso, no laboratório, a equipe da Dra. Jaqueline analisa 3 amostras de DNA a cada 10 minutos. Em 1 minuto (60 segundos), quantos quilômetros essa sonda percorre no espaço?",
+          options: [
+            { text: "Ela percorre 600 quilômetros em 1 minuto! (Porque 1 minuto tem 60 segundos, e 10 km × 60 segundos = 600 km).", isCorrect: true, feedback: "Cálculo perfeito de cientista! Você transformou 1 minuto em 60 segundos e multiplicou pela velocidade (10 × 60 = 600 km)!" },
+            { text: "Ela percorre 60 quilômetros em 1 minuto, porque 10 + 50 dá 60.", isCorrect: false, feedback: "Quase! Se ela anda 10 km a CADA segundo, durante 60 segundos precisamos multiplicar: 10 vezes 60!" },
+            { text: "Ela percorre 100 quilômetros, porque o espaço não tem gravidade nem distância.", isCorrect: false, feedback: "No espaço há gravidade sim (é ela que mantém a Lua girando ao redor da Terra!). Multiplique 10 km pelos 60 segundos de 1 minuto." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Desafio de Voz e Representatividade: mande um áudio para o seu primo contando por que você acha que durante tanto tempo a história escondeu o nome das mulheres (e principalmente das mulheres negras) nas descobertas científicas!",
+          preFilledMsg: "Oi primo! 🚀 Concluí a Missão 13 sobre a Katherine Johnson, a Dra. Jaqueline Goes e cálculos espaciais! Escuta meu áudio aí e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m14",
+        order: 14,
+        theme: "sociedade",
+        color: "from-emerald-500 to-teal-600",
+        border: "border-emerald-500/40",
+        tag: "🌳 Missão #14 • Ecologia, Matemática & Justiça Climática",
+        title: "Por Que Alguns Bairros Fervem Mais?",
+        shortDesc: "Cruze Ciências e Porcentagem para descobrir o que são 'Ilhas de Calor' e por que a crise climática não afeta todo mundo igual!",
+        xp: 40,
+        secretCode: "CLIMAJUSTO",
+        badge: { icon: "🌳", name: "Voz da Terra", desc: "Usa dados matemáticos e ecologia para defender a justiça climática." },
+        lesson: {
+          intro: `Você já reparou no Rio de Janeiro que, no mesmo dia de verão, um bairro cheio de árvores parece fresquinho, enquanto outro bairro cheio de concreto e sem árvores parece um forno? Isso junta <strong>Ciências, Matemática e Sociedade</strong>!`,
+          conceptTitle: "💡 Ilhas de Calor (Ciências) + Dados (Matemática) + Racismo Ambiental",
+          conceptBody: `Veja como as três coisas se conectam na vida real:`,
+          examples: [
+            { label: "1. A Ciência das Árvores vs. Asfalto", text: "As árvores fazem fotossíntese, criam sombra e liberam vapor d'água pelas folhas ('suor' vegetal que refresca o ar!). Já o asfalto escuro e o concreto absorvem a energia do Sol e funcionam como uma chapa quente, criando uma <strong>Ilha de Calor</strong>." },
+            { label: "2. A Matemática da Desigualdade (Racismo Ambiental)", text: "Pesquisas mostram que bairros ricos costumam ter até <strong>40% de área arborizada</strong>, enquanto muitos bairros periféricos (onde vive a maioria das famílias trabalhadoras e negras) têm menos de <strong>5% de árvores</strong>, podendo ficar até <strong>6 °C mais quentes</strong> e sofrer muito mais com alagamentos!" }
+          ],
+          takeaway: `Chama-se <strong>Justiça Climática</strong> entender que cuidar do meio ambiente não é só falar de ursos polares distantes: é cobrar que a prefeitura plante árvores, faça parques e garanta saneamento básico nos bairros onde o povo trabalhador mora!`
+        },
+        quiz: {
+          question: "Analise os dados como uma cientista ambiental: O 'Bairro Jardim' (área rica) tem 35% de cobertura de árvores e registra 29 °C às 14h. Já a 'Vila Trabalhadora' (periferia) tem apenas 5% de árvores, muito asfalto e registra 35 °C no mesmo horário. Qual é a diferença de temperatura e de porcentagem de árvores entre os dois bairros, e o que explica isso?",
+          options: [
+            { text: "Há 30% a menos de árvores e 6 °C a mais de calor na Vila Trabalhadora, mostrando uma desigualdade socioambiental (Ilha de Calor por falta de arborização pública).", isCorrect: true, feedback: "Análise impecável! Você usou a subtração (35% - 5% = 30% e 35 °C - 29 °C = 6 °C), aplicou a Ciência térmica e enxergou a injustiça social!" },
+            { text: "A diferença é de 10 °C, e isso acontece porque o Sol brilha mais forte apenas em cima dos bairros periféricos.", isCorrect: false, feedback: "O Sol é o mesmo para toda a cidade! O que muda a temperatura na superfície em 6 °C (35 - 29) é a falta de árvores e o excesso de concreto." },
+            { text: "Os dois bairros têm a mesma temperatura, pois as árvores não influenciam no calor do ar.", isCorrect: false, feedback: "As árvores fazem toda a diferença! Elas bloqueiam os raios solares e liberam umidade que resfria o ambiente." }
+          ]
+        },
+        whatsapp: {
+          prompt: "Olhe para a rua e para o bairro onde você mora: mande um áudio para o seu primo dizendo se você acha que o seu bairro tem árvores e áreas verdes suficientes e por que ter sombra, praça e ar fresco deveria ser um direito igual para todas as crianças da cidade!",
+          preFilledMsg: "Oi primo! 🌳 Resolvi a Missão 14 misturando Ciências, Matemática e Justiça Climática! Ouve meu áudio sobre o nosso bairro e me passa a senha!"
+        }
+      },
+
+      {
+        id: "m15",
+        order: 15,
+        theme: "hawkins",
+        color: "from-rose-500 to-red-600",
+        border: "border-rose-500/40",
+        tag: "🗣️ Missão #15 • Português, Cultura & Identidade",
+        title: "Nossa Voz Tem História: Sem Preconceito!",
+        shortDesc: "O que Miles Morales nos ensina sobre Variação Linguística, gírias, sotaques e o respeito à história do nosso povo?",
+        xp: 40,
+        secretCode: "VOZES13",
+        badge: { icon: "🗣️", name: "Guardiã das Vozes", desc: "Domina a língua portuguesa com respeito à diversidade cultural e social." },
+        lesson: {
+          intro: `Em <em>Homem-Aranha no Aranhaverso</em>, o Miles Morales conversa em espanhol e usa gírias do Brooklyn com a família e os amigos, mas escreve em inglês formal nas redações da escola. Será que um jeito de falar é "inteligente" e o outro é "feio"? Na matéria de Português do 6º ano, a resposta é <strong>NÃO</strong>!`,
+          conceptTitle: "💡 Variação Linguística vs. Preconceito Linguístico",
+          conceptBody: `A Língua Portuguesa não é uma estátua congelada: ela é viva e muda conforme a região, a época, a idade e o grupo social! Veja o que a Ciência da Linguagem ensina:`,
+          examples: [
+            { label: "A Norma-Padrão (A roupa de gala da língua)", text: "É o conjunto de regras usado em livros, jornais, leis e nas redações de provas (como a do IFRJ/Pedro II). Dominar a norma-padrão é um direito seu para você ocupar qualquer espaço sem ser passada para trás!" },
+            { label: "As Variedades Populares e Regionais (A riqueza da nossa identidade)", text: "O jeito de falar das periferias, do interior, do Nordeste ou do Rio carrega a história viva dos povos <strong>indígenas e africanos</strong> que construíram o Brasil (palavras como <em>caçula, cafuné, moleque, pipoca, abacaxi</em> vêm de línguas africanas e indígenas!)." },
+            { label: "O que é Preconceito Linguístico? (Inaceitável!)", text: "É quando alguém debocha, humilha ou acha que uma pessoa é 'inferior' ou 'burra' por causa do sotaque dela ou porque ela não teve acesso à escola formal." }
+          ],
+          takeaway: `Uma pessoa inteligente e de caráter é <strong>"bilíngue dentro da própria língua"</strong>: sabe escrever na norma-padrão quando a situação pede, mas tem orgulho da cultura da sua comunidade e <strong>jamais</strong> humilha alguém pelo jeito de falar!`
+        },
+        quiz: {
+          question: "Imagine que um paciente idoso, trabalhador da roça que não pôde estudar na infância, chega ao posto de saúde e diz: 'Doutor, os zóio tá ardendo muito hoje'. Um jovem arrogante na fila começa a rir e diz que o senhor 'não sabe falar nada'. De acordo com o que aprendemos em Português e Ética, por que a atitude desse jovem está errada?",
+          options: [
+            { text: "Porque o idoso conseguiu se comunicar perfeitamente, e rir do modo de falar de alguém que teve menos oportunidades escolares é Preconceito Linguístico e falta de respeito humano.", isCorrect: true, feedback: "Perfeito! O objetivo principal da língua é a comunicação e o respeito. Saber português de verdade é usar a língua para acolher, nunca para humilhar!" },
+            { text: "Porque na língua portuguesa não existem regras para escrever redações em exames oficiais.", isCorrect: false, feedback: "As regras da norma-padrão existem e são importantes para textos formais e provas, mas não dão a ninguém o direito de desrespeitar a fala espontânea do povo!" },
+            { text: "Porque apenas médicos e advogados têm permissão para falar a língua portuguesa.", isCorrect: false, feedback: "A língua pertence a todos os brasileiros que a falam e a reinventam todos os dias!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Grave um áudio para o seu primo contando: quais são as suas gírias ou expressões favoritas que você usa com suas amigas hoje em dia, e como você explicaria para alguém a diferença entre saber escrever numa prova e respeitar o jeito de falar das pessoas mais simples?",
+          preFilledMsg: "Oi primo! 🗣️ Passei pela Missão 15 sobre Variação Linguística e combate ao preconceito! Escuta meu áudio aí e me libera a senha!"
+        }
+      },
+
+      {
+        id: "m16",
+        order: 16,
+        theme: "futuro",
+        color: "from-amber-500 to-orange-600",
+        border: "border-amber-500/40",
+        tag: "⚖️ Missão #16 • Caráter, Integridade & Justiça",
+        title: "Com Grandes Poderes: A Coragem de Ser Justa",
+        shortDesc: "O que significa ter caráter e integridade na vida real quando ninguém está olhando ou quando a maioria está errada?",
+        xp: 40,
+        secretCode: "CARATER13",
+        badge: { icon: "⚖️", name: "Bússola Íntegra", desc: "Escolhe a empatia, a integridade e a justiça em qualquer dimensão." },
+        lesson: {
+          intro: `No universo do <em>Homem-Aranha</em>, o Tio Ben deixa o ensinamento mais importante de todos: <strong>"Com grandes poderes vêm grandes responsabilidades"</strong>. Em <em>Stranger Things</em>, o Mike, o Dustin e o Lucas acolhem a Onze e a Max quando os valentões da escola tentam humilhá-las.`,
+          conceptTitle: "💡 O Que É Ter Caráter e Integridade aos 13 Anos?",
+          conceptBody: `Muita gente acha que "poder" é soltar teia pela mão ou mover objetos com a mente. Mas, na vida real, <strong>conhecimento, voz e caráter são os maiores superpoderes que existem</strong>! Veja como eles funcionam no dia a dia:`,
+          examples: [
+            { label: "1. Integridade (Quem você é quando ninguém está olhando)", text: "É ser honesta, cumprir sua palavra e não trapacear ou prejudicar alguém para levar vantagem fácil." },
+            { label: "2. Coragem Moral (Não seguir a manada na maldade)", text: "Sabe quando um grupo na escola ou no WhatsApp começa a fazer <em>bullying</em>, piada racista, machista ou humilhar um colega por causa da aparência ou da roupa? Rir junto para 'se enturmar' é fácil; ter <strong>caráter</strong> é recusar a crueldade e ficar do lado de quem está sendo injustiçado!" },
+            { label: "3. A Matemática da Empatia (A Corrente do Bem)", text: "Se 1 pessoa íntegra acolhe e defende 3 colegas na semana, e cada um desses 3 se sente seguro para defender mais 3 na semana seguinte (3 × 3 = 9, e depois 9 × 3 = 27), uma única atitude corajosa transforma o ambiente de uma escola inteira!" }
+          ],
+          takeaway: `Ser uma estudante brilhante em Português, Matemática e Ciências é maravilhoso, mas o que torna você verdadeiramente gigante é usar a sua inteligência com <strong>bondade, integridade e senso de justiça</strong>!`
+        },
+        quiz: {
+          question: "Na sala de aula do 6º ano, criaram um grupo de mensagens e começaram a zombar de uma aluna nova porque ela é tímida, usa o mesmo tênis desgastado todo dia e tem cabelo crespo. Vários colegas estão mandando figurinhas rindo para parecerem 'populares'. Qual atitude demonstra verdadeiro caráter, integridade e pensamento crítico?",
+          options: [
+            { text: "Não participar da humilhação, posicionar-se dizendo que aquilo é preconceito e covardia, e acolher a aluna nova na sala para que ela saiba que não está sozinha.", isCorrect: true, feedback: "Gigante!! Ter caráter é nunca negociar a dignidade de outro ser humano em troca de 'popularidade' momentânea. Você completou a Fase 4 com honra máxima!" },
+            { text: "Rir junto e compartilhar as figurinhas só para não ficar de fora do grupo dos populares.", isCorrect: false, feedback: "Seguir a multidão quando ela está praticando uma covardia é abrir mão da própria consciência. Os verdadeiros heróis protegem quem está vulnerável!" },
+            { text: "Ficar em silêncio achando que o sofrimento do outro não tem nada a ver com você.", isCorrect: false, feedback: "Diante de uma injustiça ou preconceito, a omissão sempre acaba ajudando o agressor. Uma palavra de acolhimento pode salvar o dia (e a autoestima) de alguém!" }
+          ]
+        },
+        whatsapp: {
+          prompt: "Missão de Ouro do Caráter: mande um áudio para o seu primo contando o que significa para você ser uma pessoa 'justa e de caráter' e como vocês dois podem ser sempre um porto seguro de confiança e sinceridade um para o outro!",
+          preFilledMsg: "Oi primo! ⚖️ Cheguei na Missão 16 sobre Caráter, Integridade e Justiça! Vou te mandar um áudio muito especial pra fechar essa fase com chave de ouro!"
+        }
+      }
+    ];
+
+    // =========================================================================
+    // ESTADO E SALVAMENTO LOCAL (COM SEPARAÇÃO DE XP TOTAL E XP GASTO NA LOJA)
+    // =========================================================================
+    const todayKey = new Date().toISOString().slice(0, 10);
+
+    let state = JSON.parse(localStorage.getItem("multiverso13_v28")) || {
+      quizResolved: [],
+      missionsCompleted: [],
+      rewardsClaimed: [],
+      xpTotal: 0,
+      xpSpent: 0,
+      focusDate: todayKey,
+      focusSecondsToday: 0,
+      focusBonusClaimedToday: false
+    };
+
+    // Reseta o relógio diário de 10 minutos quando vira o dia
+    if (state.focusDate !== todayKey) {
+      state.focusDate = todayKey;
+      state.focusSecondsToday = 0;
+      state.focusBonusClaimedToday = false;
+    }
+
+    let currentMission = null;
+    let currentStep = 1;
+    let shuffledOptions = [];
+    let cooldownInterval = null;
+
+    function getAvailableBalance() {
+      return Math.max(0, (state.xpTotal || 0) - (state.xpSpent || 0));
+    }
+
+    function saveState() {
+      localStorage.setItem("multiverso13_v28", JSON.stringify(state));
+      updateHUD();
+    }
+
+    // =========================================================================
+    // ANEL DE FOCO DIÁRIO (10 MINUTOS = +10 XP, MÁXIMO 1 VEZ POR DIA)
+    // =========================================================================
+    const GOAL_SECONDS = 600; // 10 minutos
+
+    setInterval(() => {
+      if (document.visibilityState === "visible") {
+        state.focusSecondsToday = (state.focusSecondsToday || 0) + 1;
+        
+        if (state.focusSecondsToday >= GOAL_SECONDS && !state.focusBonusClaimedToday) {
+          state.focusBonusClaimedToday = true;
+          state.xpTotal += 10;
+          if (typeof confetti === "function") {
+            confetti({ particleCount: 70, spread: 70, origin: { y: 0.3 } });
+          }
+        }
+        saveState();
+        updateFocusRingUI();
+      }
+    }, 1000);
+
+    function updateFocusRingUI() {
+      const sec = state.focusSecondsToday || 0;
+      const mins = Math.floor(sec / 60);
+      const remSecs = (sec % 60).toString().padStart(2, "0");
+      const timerText = document.getElementById("focusTimerText");
+      const ring = document.getElementById("focusRing");
+
+      if (sec >= GOAL_SECONDS) {
+        timerText.innerHTML = `<span class="text-emerald-400">Foco Diário OK (+10 XP)</span>`;
+      } else {
+        timerText.innerText = `Foco: ${mins}:${remSecs} / 10:00`;
+      }
+
+      const progress = Math.min(sec / GOAL_SECONDS, 1);
+      ring.style.strokeDashoffset = 38 - (38 * progress);
+    }
+
+    // =========================================================================
+    // ALTERNÂNCIA ENTRE AS 3 SALAS PRINCIPAIS (MISSÕES / RELÍQUIAS / LOJINHA)
+    // =========================================================================
+    function switchMainView(viewName) {
+      const views = ["missoes", "reliquias", "lojinha"];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        const btn = document.getElementById(`navBtn-${v}`);
+        if (v === viewName) {
+          el.classList.remove("hidden");
+          btn.className = "py-2.5 px-3 rounded-xl font-display font-bold text-xs sm:text-sm transition-all bg-gradient-to-r from-fuchsia-600 to-purple-600 text-white shadow-lg flex items-center justify-center gap-1.5";
+        } else {
+          el.classList.add("hidden");
+          btn.className = "py-2.5 px-3 rounded-xl font-display font-bold text-xs sm:text-sm transition-all text-slate-300 hover:text-white flex items-center justify-center gap-1.5";
+        }
+      });
+
+      if (viewName === "reliquias") renderBadges();
+      if (viewName === "lojinha") renderShop();
+    }
+
+    function shuffleArray(array) {
+      const copy = [...array];
+      for (let i = copy.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [copy[i], copy[j]] = [copy[j], copy[i]];
+      }
+      return copy;
+    }
+
+    function isMissionUnlocked(index) {
+      if (!MODO_TRILHA_SEQUENCIAL) return true;
+      if (index === 0) return true;
+      const prevMissionId = MISSOES[index - 1].id;
+      return state.missionsCompleted.includes(prevMissionId);
+    }
+
+    function updateHUD() {
+      const xp = state.xpTotal || 0;
+      const balance = getAvailableBalance();
+      // A cada 60 XP acumulados ela sobe 1 nível!
+      const level = Math.floor(xp / 60) + 1;
+      const titles = ["Recruta Dimensional", "Exploradora de Hawkins", "Guardiã do Aranhaverso", "Cientista Galáctica", "Consciência Brilhante", "Lenda do Multiverso"];
+      const title = titles[Math.min(level - 1, titles.length - 1)];
+
+      document.getElementById("levelBadge").innerText = `Nível ${level} • ${title}`;
+      document.getElementById("xpTotalText").innerText = `${xp} XP`;
+      document.getElementById("xpBalanceText").innerText = `${balance} XP`;
+      document.getElementById("missionsCountText").innerText = `${state.missionsCompleted.length} de ${MISSOES.length} missões`;
+      document.getElementById("navRelicsCount").innerText = `${state.missionsCompleted.length}/${MISSOES.length}`;
+      
+      const shopBalanceEl = document.getElementById("shopBalanceDisplay");
+      if (shopBalanceEl) shopBalanceEl.innerText = `${balance} XP`;
+
+      const progressPercent = Math.max(5, Math.min((xp / 300) * 100, 100));
+      document.getElementById("xpBar").style.width = `${progressPercent}%`;
+    }
+
+    // =========================================================================
+    // RENDERIZAÇÃO DE MISSÕES, RELÍQUIAS E LOJINHA
+    // =========================================================================
+    function renderDashboard(filter = "all") {
+      const grid = document.getElementById("missionsGrid");
+      grid.innerHTML = "";
+
+      MISSOES.forEach((m, index) => {
+        if (filter !== "all" && m.theme !== filter) return;
+
+        const unlocked = isMissionUnlocked(index);
+        const isQuizDone = state.quizResolved.includes(m.id);
+        const isCompleted = state.missionsCompleted.includes(m.id);
+
+        let statusBadge = "";
+        if (!unlocked) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-900 text-slate-400 border border-white/10">🔒 Bloqueada</span>`;
+        } else if (isCompleted) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/40">✅ Concluída</span>`;
+        } else if (isQuizDone) {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/40">🔑 Falta Senha</span>`;
+        } else {
+          statusBadge = `<span class="px-2.5 py-1 rounded-full text-[11px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/40">✨ Aberta Agora</span>`;
+        }
+
+        const card = document.createElement("div");
+        
+        if (unlocked) {
+          card.className = `glass-card rounded-3xl p-5 border ${m.border} flex flex-col justify-between transition-all duration-300 hover:-translate-y-1 hover:shadow-xl cursor-pointer`;
+          card.onclick = () => openMissionModal(m.id);
+        } else {
+          card.className = `glass-card rounded-3xl p-5 border border-white/5 opacity-55 flex flex-col justify-between cursor-not-allowed select-none`;
+          card.onclick = () => alert(`🔒 Portal Trancado!\n\nPara desbloquear a Missão #${m.order}, complete a Missão #${m.order - 1} e peça a senha secreta para o seu primo no WhatsApp!`);
+        }
+
+        card.innerHTML = `
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-[11px] font-bold text-slate-300">${m.tag}</span>
+              ${statusBadge}
+            </div>
+            <h3 class="font-display font-bold text-xl text-white mb-2">${unlocked ? m.title : '🔒 ' + m.title}</h3>
+            <p class="text-slate-300 text-xs sm:text-sm leading-relaxed mb-5">
+              ${unlocked ? m.shortDesc : `Conclua a Missão #${m.order - 1} com a senha do seu primo para abrir este portal dimensional!`}
+            </p>
+          </div>
+
+          <div class="flex items-center justify-between pt-3 border-t border-white/10">
+            <span class="text-xs font-bold text-emerald-400">💎 +${m.xp} XP</span>
+            ${unlocked ? `
+              <button class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r ${m.color} text-white shadow-md hover:opacity-95 transition">
+                ${isCompleted ? 'Revisar Missão' : 'Iniciar Missão →'}
+              </button>
+            ` : `
+              <span class="px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-400">
+                Aguardando #${m.order - 1}
+              </span>
+            `}
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      renderBadges();
+      renderShop();
+      updateHUD();
+      updateFocusRingUI();
+    }
+
+    function renderBadges() {
+      const grid = document.getElementById("badgesGrid");
+      const bannerCount = document.getElementById("relicsBannerCount");
+      if (bannerCount) {
+        bannerCount.innerText = `${state.missionsCompleted.length} de ${MISSOES.length} Relíquias Desbloqueadas`;
+      }
+      grid.innerHTML = "";
+      MISSOES.forEach(m => {
+        const earned = state.missionsCompleted.includes(m.id);
+        grid.innerHTML += `
+          <div class="rounded-3xl p-5 text-center border transition-all ${earned ? 'bg-gradient-to-b from-amber-500/20 to-slate-900/80 border-amber-400/60 shadow-xl' : 'glass-card border-white/5 opacity-45 grayscale'}">
+            <div class="text-4xl mb-3">${m.badge.icon}</div>
+            <div class="text-[10px] uppercase font-bold tracking-wider ${earned ? 'text-amber-300' : 'text-slate-500'} mb-1">Missão #${m.order}</div>
+            <div class="font-display font-bold text-sm text-white mb-1.5">${m.badge.name}</div>
+            <div class="text-xs text-slate-300 leading-relaxed">${earned ? m.badge.desc : 'Destrave a senha da missão para iluminar esta relíquia.'}</div>
+          </div>
+        `;
+      });
+    }
+
+    function renderShop() {
+      const grid = document.getElementById("shopGrid");
+      if (!grid) return;
+      grid.innerHTML = "";
+      const balance = getAvailableBalance();
+
+      RECOMPENSAS_LOJA.forEach(item => {
+        const isClaimed = (state.rewardsClaimed || []).includes(item.id);
+        const canAfford = balance >= item.cost;
+
+        const msgWhatsApp = encodeURIComponent(`Oi primo! 🛍️ Juntei ${balance} XP no meu QG e quero resgatar a recompensa "${item.title}" (${item.cost} XP)! Me passa o código de resgate?`);
+        const waUrl = `https://wa.me/${TELEFONE_PRIMO}?text=${msgWhatsApp}`;
+
+        grid.innerHTML += `
+          <div class="glass-card rounded-3xl p-5 border ${isClaimed ? 'border-emerald-500/50 bg-emerald-950/20' : canAfford ? 'border-fuchsia-500/40' : 'border-white/10'} flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-3">
+                <span class="text-3xl">${item.icon}</span>
+                <span class="px-3 py-1 rounded-full text-xs font-extrabold ${isClaimed ? 'bg-emerald-500/20 text-emerald-300' : canAfford ? 'bg-emerald-500 text-slate-950' : 'bg-slate-800 text-slate-300'}">
+                  ${isClaimed ? '🎉 Já Resgatado!' : `💎 ${item.cost} XP`}
+                </span>
+              </div>
+              <h3 class="font-display font-bold text-lg text-white mb-1.5">${item.title}</h3>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">${item.desc}</p>
+            </div>
+
+            <div class="pt-3 border-t border-white/10 space-y-2.5">
+              ${isClaimed ? `
+                <div class="text-xs font-bold text-emerald-400 text-center py-2">
+                  ✅ Prêmio desbloqueado com sucesso!
+                </div>
+              ` : canAfford ? `
+                <a href="${waUrl}" target="_blank" class="block w-full text-center py-2.5 px-3 rounded-xl font-bold text-xs bg-emerald-500 hover:bg-emerald-400 text-slate-950 transition">
+                  📲 1. Pedir Resgate ao Primo no WhatsApp
+                </a>
+                <div class="flex gap-2">
+                  <input type="text" id="shopInput-${item.id}" placeholder="Senha do prêmio..." class="flex-1 bg-slate-950 border border-white/20 rounded-xl px-3 py-2 text-xs text-white uppercase">
+                  <button onclick="redeemShopItem('${item.id}')" class="px-4 py-2 rounded-xl font-bold text-xs bg-fuchsia-600 hover:bg-fuchsia-500 text-white">
+                    Confirmar
+                  </button>
+                </div>
+              ` : `
+                <div class="w-full text-center py-2.5 px-3 rounded-xl font-semibold text-xs bg-slate-800/80 text-slate-400">
+                  🔒 Faltam ${item.cost - balance} XP para liberar este prêmio
+                </div>
+              `}
+            </div>
+          </div>
+        `;
+      });
+    }
+
+    function redeemShopItem(itemId) {
+      const item = RECOMPENSAS_LOJA.find(r => r.id === itemId);
+      const input = document.getElementById(`shopInput-${itemId}`);
+      if (!input) return;
+
+      const typed = input.value.trim().toUpperCase();
+      if (typed === item.redeemCode.toUpperCase()) {
+        if (!state.rewardsClaimed.includes(item.id)) {
+          state.rewardsClaimed.push(item.id);
+          state.xpSpent = (state.xpSpent || 0) + item.cost;
+          saveState();
+          if (typeof confetti === "function") {
+            confetti({ particleCount: 150, spread: 100, origin: { y: 0.6 } });
+          }
+          alert(`🎉 PARABÉNS! Você resgatou "${item.title}"! Combine os detalhes com o seu primo no WhatsApp!`);
+          renderShop();
+        }
+      } else {
+        alert("🔒 Código de resgate incorreto! Clique no botão verde do WhatsApp para combinar o prêmio e pegar o código com o seu primo.");
+      }
+    }
+
+    // =========================================================================
+    // MODAL PASSO A PASSO + PAUSA REFLEXIVA DE 4 SEGUNDOS
+    // =========================================================================
+    function openMissionModal(missionId) {
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      currentMission = MISSOES.find(m => m.id === missionId);
+      shuffledOptions = shuffleArray(currentMission.quiz.options);
+      
+      document.getElementById("modalTag").innerText = currentMission.tag;
+      document.getElementById("modalTitle").innerText = currentMission.title;
+      
+      const modal = document.getElementById("missionModal");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+
+      goToStep(1);
+    }
+
+    function closeModal() {
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      const modal = document.getElementById("missionModal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+      renderDashboard();
+    }
+
+    function goToStep(stepNumber) {
+      if (cooldownInterval) clearInterval(cooldownInterval);
+      currentStep = stepNumber;
+      const isQuizDone = state.quizResolved.includes(currentMission.id);
+      const isCompleted = state.missionsCompleted.includes(currentMission.id);
+
+      [1, 2, 3].forEach(num => {
+        const el = document.getElementById(`stepIndicator${num}`);
+        if (num === stepNumber) {
+          el.className = "flex items-center gap-1.5 text-cyan-400 font-bold";
+        } else if (num < stepNumber || (num === 3 && isQuizDone)) {
+          el.className = "flex items-center gap-1.5 text-emerald-400";
+        } else {
+          el.className = "flex items-center gap-1.5 text-slate-500";
+        }
+      });
+
+      const body = document.getElementById("modalBody");
+
+      if (stepNumber === 1) {
+        const examplesHtml = currentMission.lesson.examples.map(ex => `
+          <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-3.5">
+            <div class="text-xs font-bold text-cyan-300 mb-1">🔹 ${ex.label}</div>
+            <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">${ex.text}</p>
+          </div>
+        `).join("");
+
+        body.innerHTML = `
+          <div class="space-y-4">
+            <p class="text-sm text-slate-200 leading-relaxed bg-white/5 p-4 rounded-2xl border border-white/10">
+              ${currentMission.lesson.intro}
+            </p>
+
+            <div class="bg-gradient-to-br from-fuchsia-500/10 to-cyan-500/10 border border-cyan-500/30 rounded-2xl p-4 space-y-3">
+              <h4 class="font-display font-bold text-base text-white">${currentMission.lesson.conceptTitle}</h4>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${currentMission.lesson.conceptBody}</p>
+              <div class="space-y-2.5 pt-1">${examplesHtml}</div>
+            </div>
+
+            <div class="bg-amber-500/10 border border-amber-500/30 rounded-2xl p-3.5 text-xs sm:text-sm text-amber-200 leading-relaxed">
+              ${currentMission.lesson.takeaway}
+            </div>
+
+            <div class="pt-2">
+              <button onclick="goToStep(2)" class="w-full py-3.5 rounded-2xl font-display font-bold text-sm bg-gradient-to-r ${currentMission.color} text-white shadow-lg hover:opacity-95 transition">
+                Entendi o segredo! Ir para o Simulador →
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      else if (stepNumber === 2) {
+        const optionsHtml = shuffledOptions.map((opt, idx) => {
+          const highlightCorrect = (isQuizDone && opt.isCorrect) ? "border-emerald-500 bg-emerald-500/20 text-emerald-100" : "border-white/10 bg-slate-900/80 hover:border-cyan-400/60 text-slate-200";
+          return `
+            <button onclick="selectQuizOption(${idx})" class="quiz-opt-btn w-full text-left p-4 rounded-2xl border transition-all text-xs sm:text-sm leading-relaxed flex items-start gap-3 disabled:opacity-45 disabled:cursor-not-allowed ${highlightCorrect}">
+              <span class="w-6 h-6 rounded-full bg-white/10 flex-shrink-0 flex items-center justify-center font-bold text-xs">${String.fromCharCode(65 + idx)}</span>
+              <span>${opt.text}</span>
+            </button>
+          `;
+        }).join("");
+
+        body.innerHTML = `
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-fuchsia-400">🧪 Teste Rápido no Laboratório</span>
+              <button onclick="goToStep(1)" class="text-xs text-cyan-400 underline">← Voltar para a explicação</button>
+            </div>
+
+            <p class="font-semibold text-sm sm:text-base text-white leading-relaxed">
+              ${currentMission.quiz.question}
+            </p>
+
+            <div class="space-y-2.5">${optionsHtml}</div>
+
+            <div id="quizFeedbackBox" class="${isQuizDone ? 'block bg-emerald-500/20 border-emerald-500/40 text-emerald-200' : 'hidden'} p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed">
+              ${isQuizDone ? '🎉 Você já dominou este desafio! Avance para o Passo 3 para falar com o seu primo no WhatsApp.' : ''}
+            </div>
+
+            <div id="nextStepBtnContainer" class="${isQuizDone ? 'block' : 'hidden'} pt-2">
+              <button onclick="goToStep(3)" class="w-full py-3.5 rounded-2xl font-display font-bold text-sm bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-lg">
+                Abrir Rádio Comunicador (WhatsApp) →
+              </button>
+            </div>
+          </div>
+        `;
+      }
+
+      else if (stepNumber === 3) {
+        const encodedText = encodeURIComponent(currentMission.whatsapp.preFilledMsg);
+        const whatsappUrl = `https://wa.me/${TELEFONE_PRIMO}?text=${encodedText}`;
+
+        body.innerHTML = `
+          <div class="space-y-5">
+            <div class="bg-gradient-to-br from-emerald-500/15 to-cyan-500/15 border border-emerald-500/30 rounded-2xl p-4 space-y-3">
+              <div class="flex items-center gap-2 text-emerald-300 font-bold text-xs uppercase tracking-wider">
+                <span>📡 Missão de Áudio com o Primo</span>
+              </div>
+              <p class="text-sm text-slate-100 leading-relaxed">
+                ${currentMission.whatsapp.prompt}
+              </p>
+              
+              <a href="${whatsappUrl}" target="_blank" class="flex items-center justify-center gap-2 w-full py-3 px-4 rounded-xl font-bold text-xs sm:text-sm bg-emerald-500 hover:bg-emerald-400 text-slate-950 shadow-lg transition">
+                <span>📲 1. Toque aqui para abrir o WhatsApp do Primo</span>
+              </a>
+              <p class="text-[11px] text-slate-400 text-center">
+                (Depois de mandar seu áudio, peça a senha secreta para ganhar +${currentMission.xp} XP e abrir a próxima missão!)
+              </p>
+            </div>
+
+            <div class="bg-slate-900/90 border border-white/10 rounded-2xl p-4 space-y-3">
+              <label class="block text-xs font-bold uppercase tracking-wider text-fuchsia-300">
+                🔐 2. Digite a senha do primo para destravar:
+              </label>
+              ${isCompleted ? `
+                <div class="p-3.5 rounded-xl bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs sm:text-sm font-bold text-center">
+                  ✨ Relíquia "${currentMission.badge.name}" Desbloqueada (+${currentMission.xp} XP)!
+                </div>
+              ` : `
+                <div class="flex gap-2">
+                  <input type="text" id="secretCodeInput" placeholder="Digite a senha aqui..." class="flex-1 bg-slate-950 border border-white/20 rounded-xl px-3.5 py-2.5 text-sm text-white uppercase tracking-wider focus:outline-none focus:border-fuchsia-500">
+                  <button onclick="verifySecretCode()" class="px-5 py-2.5 rounded-xl font-display font-bold text-xs sm:text-sm bg-gradient-to-r from-fuchsia-500 to-rose-500 text-white shadow-md">
+                    Destravar
+                  </button>
+                </div>
+                <p id="secretErrorMsg" class="text-xs text-rose-400 hidden"></p>
+              `}
+            </div>
+          </div>
+        `;
+      }
+    }
+
+    function selectQuizOption(idx) {
+      const chosen = shuffledOptions[idx];
+      const feedbackBox = document.getElementById("quizFeedbackBox");
+      const nextBtn = document.getElementById("nextStepBtnContainer");
+
+      feedbackBox.classList.remove("hidden");
+
+      if (chosen.isCorrect) {
+        if (cooldownInterval) clearInterval(cooldownInterval);
+        if (!state.quizResolved.includes(currentMission.id)) {
+          state.quizResolved.push(currentMission.id);
+          saveState();
+        }
+        if (typeof confetti === "function") {
+          confetti({ particleCount: 50, spread: 60, origin: { y: 0.7 } });
+        }
+        feedbackBox.className = "p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed bg-emerald-500/20 border-emerald-500/40 text-emerald-200";
+        feedbackBox.innerHTML = `✅ <strong>Mandou muito bem!</strong> ${chosen.feedback}`;
+        nextBtn.classList.remove("hidden");
+      } else {
+        const allBtns = document.querySelectorAll(".quiz-opt-btn");
+        allBtns.forEach(b => b.disabled = true);
+        let countdown = 4;
+
+        feedbackBox.className = "p-4 rounded-2xl border text-xs sm:text-sm leading-relaxed bg-rose-500/20 border-rose-500/40 text-rose-200";
+        feedbackBox.innerHTML = `
+          💡 <strong>Dica do Laboratório:</strong> ${chosen.feedback}
+          <div id="cooldownNotice" class="mt-2 pt-2 border-t border-rose-500/30 text-[11px] text-rose-300 font-semibold">
+            ⏳ Pausa reflexiva: leia a dica com calma... liberando tentativa em ${countdown}s
+          </div>
+        `;
+
+        if (cooldownInterval) clearInterval(cooldownInterval);
+        cooldownInterval = setInterval(() => {
+          countdown--;
+          const notice = document.getElementById("cooldownNotice");
+          if (countdown <= 0) {
+            clearInterval(cooldownInterval);
+            allBtns.forEach(b => b.disabled = false);
+            if (notice) notice.innerHTML = "✨ Pronto! Agora você já pode escolher outra alternativa.";
+          } else if (notice) {
+            notice.innerHTML = `⏳ Pausa reflexiva: leia a dica com calma... liberando tentativa em ${countdown}s`;
+          }
+        }, 1000);
+      }
+    }
+
+    function verifySecretCode() {
+      const input = document.getElementById("secretCodeInput");
+      const errorMsg = document.getElementById("secretErrorMsg");
+      const typed = input.value.trim().toUpperCase();
+
+      if (typed === currentMission.secretCode.toUpperCase()) {
+        if (!state.missionsCompleted.includes(currentMission.id)) {
+          state.missionsCompleted.push(currentMission.id);
+          state.xpTotal = (state.xpTotal || 0) + currentMission.xp;
+          saveState();
+        }
+        if (typeof confetti === "function") {
+          confetti({ particleCount: 120, spread: 90, origin: { y: 0.6 } });
+        }
+        goToStep(3);
+      } else {
+        errorMsg.classList.remove("hidden");
+        errorMsg.innerText = "🔒 Código incorreto! Chame seu primo no botão verde acima para pegar a senha certa.";
+      }
+    }
+
+    function filterMissions(theme, btn) {
+      document.querySelectorAll(".tab-btn").forEach(b => {
+        b.className = "tab-btn px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all glass-card text-slate-300 hover:text-white";
+      });
+      btn.className = "tab-btn active px-4 py-2 rounded-2xl text-xs sm:text-sm font-semibold whitespace-nowrap transition-all bg-white text-slate-900 shadow-lg";
+      renderDashboard(theme);
+    }
+
+    renderDashboard();
+  </script>
+</body>
+</html>
